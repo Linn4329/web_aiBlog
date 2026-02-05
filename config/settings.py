@@ -173,3 +173,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Media files (用户上传的文件)
+MEDIA_URL = 'media/'  # 访问上传文件的 URL 前缀
+MEDIA_ROOT = BASE_DIR / 'media'  # 上传文件的存储路径
