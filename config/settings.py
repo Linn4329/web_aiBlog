@@ -177,3 +177,9 @@ STATIC_URL = 'static/'
 # Media files (用户上传的文件)
 MEDIA_URL = 'media/'  # 访问上传文件的 URL 前缀
 MEDIA_ROOT = BASE_DIR / 'media'  # 上传文件的存储路径
+
+
+# AI配置
+AI_API_KEY = os.getenv('AI_API_KEY', 'DASHSCOPE_API_KEY')
+AI_BASE_URL = os.getenv('AI_BASE_URL', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
+AI_MODEL = os.getenv('AI_MODEL', 'qwen-turbo')
