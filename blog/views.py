@@ -116,11 +116,14 @@ class PostListView(APIView):
                 'message': '请先登录'
             },status=status.HTTP_401_UNAUTHORIZED)
         
+        print("请求数据:", request.data)
+        
         serializer = PostCreateUpdateSerializer(data=request.data)
         if not serializer.is_valid():
+            print("序列化器错误:", serializer.errors)
             return Response({
                 'message':'创建文章失败',
-                'error':serializer.errors
+                'error': str(serializer.errors)
             },status=status.HTTP_400_BAD_REQUEST)
         
         # 自动设置作者为当前登录用户

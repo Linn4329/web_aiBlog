@@ -53,8 +53,11 @@ class PostCreateUpdateSerializer(serializers.ModelSerializer):
     title = serializers.CharField(
         error_messages={'required': '标题不能为空', 'blank': '标题不能为空'}
     )
+    # excerpt 设为可选，允许前端不传递
     excerpt = serializers.CharField(
-        error_messages={'required': '摘要不能为空', 'blank': '摘要至少需要 10 个字符'}
+        required=False,
+        allow_blank=True,
+        error_messages={'blank': '摘要至少需要 10 个字符'}
     )
 
 
@@ -69,11 +72,7 @@ class PostCreateUpdateSerializer(serializers.ModelSerializer):
         return value
         
     def validate_excerpt(self, value):
-        """验证摘要不为空且不为纯空格"""
-        if not value or not value.strip():
-            raise serializers.ValidationError("摘要不能为空")
-        if len(value) < 10:
-            raise serializers.ValidationError("摘要至少需要 10 个字符")
+        """验证摘要（可选）"""
         return value
         
     def validate_status(self, value):
@@ -84,8 +83,18 @@ class PostCreateUpdateSerializer(serializers.ModelSerializer):
         return value
         
     def create(self, validated_data):
-        """创建文章时自动设置作者"""
+        """创建文章时自动设置作者和摘要"""
         tags_data = validated_data.pop('tags', [])
+        
+        # 处理 excerpt：为空或短于 10 字符时从内容生成
+        excerpt = validated_data.get('excerpt', '')
+        if not excerpt or len(excerpt.strip()) < 10:
+            content = validated_data.get('content', '')
+            # 去除 HTML 标签，取前 200 个字符
+            import re
+            text = re.sub(r'<[^>]+>', '', content)
+            validated_data['excerpt'] = text[:200] if text else '暂无摘要'
+        
         post = Post.objects.create(**validated_data)
         if tags_data:
             post.tags.set(tags_data)

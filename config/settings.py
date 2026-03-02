@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "profiles",
     "blog",
     "ai",
+    'corsheaders',
 ]
 
 REST_FRAMEWORK = {
@@ -89,6 +90,7 @@ SIMPLE_JWT = {
 }                                                   # Bearer 表示"持有者"，即持有此 token 的人就是本人
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -183,3 +185,35 @@ MEDIA_ROOT = BASE_DIR / 'media'  # 上传文件的存储路径
 AI_API_KEY = os.getenv('AI_API_KEY', 'DASHSCOPE_API_KEY')
 AI_BASE_URL = os.getenv('AI_BASE_URL', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
 AI_MODEL = os.getenv('AI_MODEL', 'qwen-turbo')
+
+# CORS 配置
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # 前端地址
+    "http://127.0.0.1:5173",
+]
+
+# 允许携带认证信息（cookies）
+CORS_ALLOW_CREDENTIALS = True
+
+# 允许的请求方法
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# 允许的请求头
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
