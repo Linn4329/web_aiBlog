@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import PermissionDenied
 from django.http import Http404
-from django.db.models import F
+from django.db.models import F, Q
 from .models import Tag, Post
 from .serializers import (
     TagSerializer, 
@@ -79,12 +79,30 @@ class PostListView(APIView):
         """
         GET /api/blog/posts/
         分页获取已发布文章列表（公开访问）
+        支持搜索：?search=关键词
+        支持标签筛选：?tag=标签ID
         """
 
         try:
+            # 获取搜索参数
+            search = request.query_params.get('search', '')
+            tag_id = request.query_params.get('tag', '')
+            
             # 只返回已发布的文章
-            posts = Post.objects.filter(status='published').order_by('-created_at')
-
+            posts = Post.objects.filter(status='published')
+            
+            # 搜索标题或内容
+            if search:
+                posts = posts.filter(
+                    Q(title__icontains=search) | 
+                    Q(content__icontains=search)
+                )
+            
+            # 按标签筛选
+            if tag_id:
+                posts = posts.filter(tags__id=tag_id)
+            
+            posts = posts.order_by('-created_at')
             posts = posts.select_related('author').prefetch_related("tags")
 
             paginator = PostPagination()
