@@ -3,3 +3,4 @@ mysqlclient>=2.2.1
 python-dotenv
 djangorestframework
 djangorestframework-simplejwt
+openai>=1.0.0

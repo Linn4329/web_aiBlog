@@ -21,7 +21,7 @@ class ChatSession(models.Model):
         db_table = 'ai_chat_sessions'
         ordering = ('-updated_at',)
 
-    def _str_(self):
+    def __str__(self):
         return f"{self.user.username}- {self.title or '未命名会话'}"
     
 

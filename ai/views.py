@@ -2,6 +2,7 @@ import json
 import time
 from django.http import StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from .services import AIService
@@ -147,7 +148,8 @@ def chat_stream(request):
     else:
         session = ChatSession.objects.create(
             user=user,
-            title=message[:20]
+            title=message[:20],
+            session_type='consult'
         )
 
     # 3. 保存用户消息
@@ -231,3 +233,94 @@ def chat_stream(request):
     response['Cache-Control'] = 'no-cache'
     response['X-Accel-Buffering'] = 'no'  # 禁用Nginx缓冲
     return response
+
+
+@api_view(['get', 'post'])
+@permission_classes([IsAuthenticated])
+def session_list(request):
+    """
+    会话列表接口
+
+    GET /api/ai/sessions/ - 获取当前用户的所有会话
+    POST /api/ai/sessions/ - 创建新会话
+
+    POST请求体:
+    {
+        "title": "会话标题",  // 可选
+        "session_type": "consult"  // 可选，默认为consult
+    }
+    """
+    if request.method == 'GET':
+        # 获取当前用户的所有会话
+        sessions = ChatSession.objects.filter(user=request.user).order_by('-updated_at')
+        serializer = ChatSessionListSerializer(sessions, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        # 创建新会话
+        title = request.data.get('title', '')
+        session_type = request.data.get('session_type', 'consult')
+
+        session = ChatSession.objects.create(
+            user=request.user,
+            title=title,
+            session_type=session_type
+        )
+        serializer = ChatSessionSerializer(session)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+@api_view(['get', 'put', 'delete'])
+@permission_classes([IsAuthenticated])
+def session_detail(request, session_id):
+    """
+    会话详情接口
+
+    GET /api/ai/sessions/{id}/ - 获取会话详情（包含所有消息）
+    PUT /api/ai/sessions/{id}/ - 更新会话
+    DELETE /api/ai/sessions/{id}/ - 删除会话
+    """
+    # 获取会话，确保是当前用户的
+    session = get_object_or_404(
+        ChatSession,
+        id=session_id,
+        user=request.user
+    )
+
+    if request.method == 'GET':
+        serializer = ChatSessionSerializer(session)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        # 更新会话标题
+        title = request.data.get('title', session.title)
+        session.title = title
+        session.save()
+        serializer = ChatSessionSerializer(session)
+        return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        # 删除会话（级联删除所有消息）
+        session.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['get'])
+@permission_classes([IsAuthenticated])
+def session_messages(request, session_id):
+    """
+    获取会话消息列表
+
+    GET /api/ai/sessions/{id}/messages/ - 获取消息
+    """
+    # 验证会话所有权
+    session = get_object_or_404(
+        ChatSession,
+        id=session_id,
+        user=request.user
+    )
+
+    # 获取会话的所有消息
+    messages = ChatMessage.objects.filter(session=session).order_by('created_at')
+    serializer = ChatMessageSerializer(messages, many=True)
+    return Response(serializer.data)

@@ -30,7 +30,7 @@ class ProfileDetailView(APIView):
         serilizer = ProfileUpdateSerializer(
             profile,
             data = request.data,
-            parital = True
+            partial = True
         )
 
         if not serilizer.is_valid():

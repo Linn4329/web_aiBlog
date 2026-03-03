@@ -69,13 +69,18 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
 
     def validate_nickname(self,value):
         """自定义昵称验证"""
-        # value.strip()去除前后空格
-        if value and len(value.strip()) == 0:
-            raise serializers.ValidationError('昵称不能为空')
-        return value.strip()
+        # 允许空字符串或只有空格的字符串
+        if value is not None:
+            stripped = value.strip()
+            if stripped:
+                return stripped
+        return value
     
     def validate_bio(self, value):
         """自定义简介验证"""
-        if value and len(value.strip()) == 0:
-            raise serializers.ValidationError('简介不能为空')
-        return value.strip()
+        # 允许空字符串或只有空格的字符串
+        if value is not None:
+            stripped = value.strip()
+            if stripped:
+                return stripped
+        return value

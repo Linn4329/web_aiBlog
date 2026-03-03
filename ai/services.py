@@ -85,7 +85,11 @@ class AIService:
                 max_tokens=300,
                 timeout=self.timeout,
             )
-            return response.choices[0].message.content.strip()
+            summary = response.choices[0].message.content.strip()
+            # 去掉"摘要："前缀
+            if summary.startswith('摘要：'):
+                summary = summary[3:]
+            return summary
         
         except APITimeoutError as e:
             raise TimeoutError(f"生成摘要超时（{self.timeout}秒）")

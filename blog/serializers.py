@@ -31,14 +31,16 @@ class TagCreateSerializer(serializers.ModelSerializer):
 class PostSerializer(serializers.ModelSerializer):
     """文章展示序列化器（只读）"""
     author = serializers.SerializerMethodField()  # 自定义字段，获取用户名
+    tags = TagSerializer(many=True, read_only=True)  # 使用TagSerializer序列化标签
     
     class Meta:
         model = Post
         fields = [
-            'id', 'title', 'author', 'excerpt', 
-            'cover_image', 'status', 'view_count', 
+            'id', 'title', 'author', 'excerpt', 'content',
+            'cover_image', 'status', 'view_count',
             'tags', 'created_at', 'updated_at'
         ]
+
         read_only_fields = ['id', 'created_at', 'updated_at', 'view_count']
         
     def get_author(self, obj):
